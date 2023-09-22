@@ -17,8 +17,6 @@ import java.util.List;
 public class BookService {
     @Autowired
     private EntityManager entityManager;
-    @Autowired
-    private SessionFactory sessionFactory;
 
     public List<Book> findAll(){
         TypedQuery<Book> typedQuery = entityManager.createQuery("SELECT B from Book as B",Book.class);
@@ -33,50 +31,26 @@ public class BookService {
     }
     public void save (Book book){
         // có sự thay đổi dữ liệu => đua vào transaction
-        Session session = null;
-        Transaction transaction = null;
-        try{
-            session = sessionFactory.openSession();
-            transaction = session.beginTransaction();
             // phân chia chức năng
+            entityManager.getTransaction().begin();
             if(book.getId() == null){
                 // thêm mới
-                session.save(book);
+               entityManager.persist(book);
             }else {
-                // cập nhật
-                // lấy ra đối tượng cũ
-                Book old = findById(book.getId());
-                old.setName(book.getName());
-                old.setPrice(book.getPrice());
+              Book old = findById(book.getId());
 
-                // lưu lại vào session
-                session.saveOrUpdate(old);
-            }
-            transaction.commit();
+              old.setName(book.getName());
+              old.setPrice(book.getPrice());
 
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
-            if(session!=null){
-                session.close();
+              entityManager.merge(old);
             }
-        }
+            entityManager.getTransaction().commit();
+
     }
     public void delete(Long id){
-        Session session = null;
-        Transaction transaction = null;
-        try{
-            session = sessionFactory.openSession();
-            transaction = session.beginTransaction();
-            session.delete(findById(id));
-            transaction.commit();
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
-            if(session!=null){
-                session.close();
-            }
-        }
+        entityManager.getTransaction().begin();
+       entityManager.remove(findById(id));
+       entityManager.getTransaction().commit();
     }
 
 }
