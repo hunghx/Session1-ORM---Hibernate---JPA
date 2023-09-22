@@ -15,7 +15,7 @@ public class BookController {
     public BookService bookService;
     @GetMapping
     public String getAll(){
-        List<Book> list = bookService.findAll();
+        List<Book> list = bookService.findByName("trình");
         System.out.println(list);
         return "home";
     }
